@@ -12,8 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(form);
         const data = {
             text: formData.get('text'),
-            rhymebook: formData.get('rhymebook'),
-            cipai: formData.get('cipai')
+            rhymebook: formData.get('rhymebook')
         };
 
         // 显示加载状态

@@ -42,15 +42,11 @@ def load_rhymebook_with_yunbu(rhymebook_choice: str) -> Tuple[Dict[str, str], Di
         rhymebook_data = json.load(f)
     return build_tone_dict(rhymebook_data)
 
-def load_cipai(cipai_choice: str) -> pd.DataFrame:
+def load_cipai() -> pd.DataFrame:
     """
-    加载词牌谱文件并返回DataFrame。
+    加载钦定词谱文件并返回DataFrame。
     """
-    cipai_map = {
-        '1': 'data/cipai_with_statistics_qdcp.csv',
-        '2': 'data/cipai_with_statistics_tscgl.csv'
-    }
-    cipai_path = cipai_map.get(cipai_choice, 'data/cipai_with_statistics_tscgl.csv')
+    cipai_path = 'data/cipai_with_statistics_qdcp.csv'
     if not os.path.exists(cipai_path):
         raise FileNotFoundError(f"词牌谱文件未找到: {cipai_path}")
     return pd.read_csv(cipai_path)
@@ -129,7 +125,7 @@ def get_score_tone(
     return score_percent, issue_data
 
 def estimate_poetry(
-    text: str, rhymebook: str, cipai: str
+    text: str, rhymebook: str
 ) -> Dict[str, Any]:
     """
     综合分析诗词文本，返回分析结果的字典。
@@ -140,7 +136,7 @@ def estimate_poetry(
         return {"error": f"加载韵书文件出错: {e}"}
     
     try:
-        cipai_data = load_cipai(cipai)
+        cipai_data = load_cipai()
     except Exception as e:
         return {"error": f"加载词牌谱文件出错: {e}"}
     
@@ -171,15 +167,16 @@ def estimate_poetry(
     # 韵脚字处理
     yunjiao_positions = []
     yunjiao_words = []
+    yunjiao_yunbu = {}
+    
     if guess_cipai and author:
         key = f"{guess_cipai.strip()}|{author.strip()}"
         yunjiao_positions = yunjiao_dict.get(key, [])
         yunjiao_words = [text_drop[pos-1] for pos in yunjiao_positions if 0 < pos <= len(text_drop)]
-
-    # 查询韵脚字的韵部
-    yunjiao_yunbu = {}
-    for word in yunjiao_words:
-        yunjiao_yunbu[word] = [yunbu for yunbu, words in yunbu_dict.items() if word in words]
+        
+        # 查询韵脚字的韵部
+        for word in yunjiao_words:
+            yunjiao_yunbu[word] = [yunbu for yunbu, words in yunbu_dict.items() if word in words]
 
     # 格式化不合平仄的字信息
     formatted_issues = []
@@ -214,12 +211,11 @@ def analyze():
     data = request.get_json()
     text = data.get('text', '')
     rhymebook = data.get('rhymebook', '2')
-    cipai = data.get('cipai', '1')
     
     if not text.strip():
         return jsonify({"error": "请输入要分析的诗词文本"})
     
-    result = estimate_poetry(text, rhymebook, cipai)
+    result = estimate_poetry(text, rhymebook)
     return jsonify(result)
 
 if __name__ == '__main__':
