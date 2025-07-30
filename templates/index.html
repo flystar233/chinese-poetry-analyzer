@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古诗词平仄分析器</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">古诗词平仄分析器</h1>
+            <p class="subtitle">智能分析词牌名、平仄合规性及韵脚韵部</p>
+        </header>
+
+        <main class="main-content">
+            <div class="input-section">
+                <form id="analysis-form" class="form">
+                    <div class="form-group">
+                        <label for="text-input" class="label">请输入古诗词文本：</label>
+                        <textarea 
+                            id="text-input" 
+                            name="text" 
+                            class="text-input" 
+                            placeholder="例如：梅梅柳柳斗纤秾。乱山中。为谁容。试著春衫，依旧怯东风。何处踏青人未去，呼女伴，认骄骢。儿家门户几重重。记相逢。画桥东。明日重来，风雨暗残红。可惜行云春不管，裙带褪，鬓云松。"
+                            rows="6"
+                            required
+                        ></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="rhymebook-select" class="label">韵书选择：</label>
+                            <select id="rhymebook-select" name="rhymebook" class="select">
+                                <option value="1">词林正韵</option>
+                                <option value="2" selected>中华新韵</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cipai-select" class="label">词牌谱选择：</label>
+                            <select id="cipai-select" name="cipai" class="select">
+                                <option value="1" selected>钦定词谱</option>
+                                <option value="2">唐宋词格律</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="analyze-btn">
+                        <span class="btn-text">开始分析</span>
+                        <div class="loading-spinner" style="display: none;"></div>
+                    </button>
+                </form>
+            </div>
+
+            <div class="result-section" id="result-section" style="display: none;">
+                <div class="result-card">
+                    <h2 class="result-title">分析结果</h2>
+                    <div id="result-content"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 古诗词平仄分析器 - 传承中华诗词文化</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html> 
