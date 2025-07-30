@@ -360,4 +360,135 @@ body {
     .tone-display {
         font-size: 1em;
     }
+}
+
+/* 韵脚标注样式 */
+.yunjiao-annotated-text {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.3em;
+    line-height: 2.2;
+    margin: 15px 0;
+    padding: 25px;
+    background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+    border-radius: 12px;
+    border: 2px solid #fc8181;
+    position: relative;
+    overflow: visible;
+    text-align: center;  /* 居中显示，更符合古诗词的传统排版 */
+}
+
+.yunjiao-char-annotated {
+    position: relative;
+    display: inline;
+    color: #e53e3e;
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-color: #e53e3e;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.yunjiao-char-annotated:hover {
+    color: #c53030;
+    text-decoration-color: #c53030;
+    text-decoration-thickness: 3px;
+}
+
+.yunjiao-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.75em;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    margin-bottom: 5px;
+}
+
+.yunjiao-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+.yunjiao-char-annotated:hover .yunjiao-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 韵脚统计样式 */
+.yunjiao-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.yunjiao-summary-item {
+    background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+    border: 1px solid #4fd1c7;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.yunjiao-summary-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(79, 209, 199, 0.2);
+}
+
+.yunjiao-char {
+    font-size: 1.4em;
+    font-weight: 700;
+    color: #234e52;
+    background: #4fd1c7;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+}
+
+.yunjiao-yunbu {
+    flex: 1;
+    color: #2d3748;
+    font-weight: 500;
+    text-align: right;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .yunjiao-annotated-text {
+        font-size: 1.1em;
+        padding: 20px;
+    }
+    
+    .yunjiao-summary {
+        grid-template-columns: 1fr;
+    }
+    
+    .yunjiao-char {
+        width: 35px;
+        height: 35px;
+        font-size: 1.2em;
+    }
 } 

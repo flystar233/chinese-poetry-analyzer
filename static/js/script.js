@@ -149,32 +149,33 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
-        // 韵脚字
-        if (result.yunjiao_words && result.yunjiao_words.length > 0) {
+        // 韵脚标注显示
+        if (result.yunjiao_detailed && result.yunjiao_detailed.length > 0) {
             html += `
                 <div class="result-item">
-                    <div class="result-label">韵脚字：</div>
-                    <div class="yunjiao-list">
-                        ${result.yunjiao_words.map(word => 
-                            `<span class="yunjiao-item">${word}</span>`
-                        ).join('')}
+                    <div class="result-label">韵脚标注：</div>
+                    <div class="yunjiao-annotated-text">
+                        ${createAnnotatedText(result.text, result.yunjiao_detailed)}
                     </div>
                 </div>
             `;
 
-            // 韵脚韵部
-            if (result.yunjiao_yunbu) {
-                html += `
-                    <div class="result-item">
-                        <div class="result-label">韵脚韵部：</div>
-                        <div class="result-value">
-                            ${Object.entries(result.yunjiao_yunbu).map(([word, yunbu]) => 
-                                `<div>${word}：${yunbu.length > 0 ? yunbu.join('、') : '未找到韵部'}</div>`
-                            ).join('')}
-                        </div>
+            // 韵脚统计
+            html += `
+                <div class="result-item">
+                    <div class="result-label">韵脚统计：</div>
+                    <div class="yunjiao-summary">
+                        ${result.yunjiao_detailed.map(item => 
+                            `<div class="yunjiao-summary-item">
+                                <span class="yunjiao-char">${item.word}</span>
+                                <span class="yunjiao-yunbu">
+                                    ${item.yunbu.length > 0 ? item.yunbu.join('、') : '未找到韵部'}
+                                </span>
+                            </div>`
+                        ).join('')}
                     </div>
-                `;
-            }
+                </div>
+            `;
         }
 
         resultContent.innerHTML = html;
@@ -214,6 +215,46 @@ document.addEventListener('DOMContentLoaded', function() {
             case '仄': return 'tone-ze';
             default: return 'tone-unknown';
         }
+    }
+
+    // 创建带韵脚标注的文本
+    function createAnnotatedText(text, yunjiaoDetailed) {
+        if (!text || !yunjiaoDetailed || yunjiaoDetailed.length === 0) {
+            // 如果没有韵脚信息，仍然要按标点符号分行
+            return text.replace(/([，。])/g, '$1<br/>');
+        }
+
+        // 创建位置到韵脚信息的映射
+        const positionMap = {};
+        yunjiaoDetailed.forEach(item => {
+            positionMap[item.position] = item;
+        });
+
+        let result = '';
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            
+            if (positionMap[i]) {
+                // 这是一个韵脚字
+                const yunjiaoInfo = positionMap[i];
+                const yunbuText = yunjiaoInfo.yunbu.length > 0 
+                    ? yunjiaoInfo.yunbu.join('、') 
+                    : '未知韵部';
+                
+                result += `<span class="yunjiao-char-annotated" title="韵脚字：${char}，韵部：${yunbuText}">
+                    ${char}
+                    <span class="yunjiao-tooltip">${yunbuText}</span>
+                </span>`;
+            } else {
+                // 普通字符，检查是否是标点符号
+                if (char === '，' || char === '。') {
+                    result += char + '<br/>';  // 在逗号和句号后添加换行
+                } else {
+                    result += char;
+                }
+            }
+        }
+        return result;
     }
 
     // 添加示例文本按钮功能

@@ -168,15 +168,36 @@ def estimate_poetry(
     yunjiao_positions = []
     yunjiao_words = []
     yunjiao_yunbu = {}
+    yunjiao_detailed = []  # 详细的韵脚信息，包含位置、字、韵部
     
     if guess_cipai and author:
         key = f"{guess_cipai.strip()}|{author.strip()}"
         yunjiao_positions = yunjiao_dict.get(key, [])
         yunjiao_words = [text_drop[pos-1] for pos in yunjiao_positions if 0 < pos <= len(text_drop)]
         
-        # 查询韵脚字的韵部
-        for word in yunjiao_words:
-            yunjiao_yunbu[word] = [yunbu for yunbu, words in yunbu_dict.items() if word in words]
+        # 创建从text_drop位置到原文位置的映射
+        text_drop_to_original_map = {}
+        text_drop_index = 0
+        for original_index, char in enumerate(text):
+            if re.match(r'[\u4e00-\u9fa5]', char):  # 如果是汉字
+                text_drop_to_original_map[text_drop_index] = original_index
+                text_drop_index += 1
+        
+        # 查询韵脚字的韵部并构建详细信息
+        for pos in yunjiao_positions:
+            if 0 < pos <= len(text_drop):
+                word = text_drop[pos-1]
+                text_drop_pos = pos - 1  # text_drop中的位置（0开始）
+                original_pos = text_drop_to_original_map.get(text_drop_pos, -1)  # 原文中的位置
+                
+                if original_pos >= 0:
+                    yunbu_list = [yunbu for yunbu, words in yunbu_dict.items() if word in words]
+                    yunjiao_detailed.append({
+                        "position": original_pos,  # 原文中的位置
+                        "word": word,
+                        "yunbu": yunbu_list
+                    })
+                    yunjiao_yunbu[word] = yunbu_list
 
     # 格式化不合平仄的字信息
     formatted_issues = []
@@ -197,6 +218,7 @@ def estimate_poetry(
         "issues": formatted_issues,
         "yunjiao_words": yunjiao_words,
         "yunjiao_yunbu": yunjiao_yunbu,
+        "yunjiao_detailed": yunjiao_detailed,  # 新增：详细的韵脚信息
         "tone_text": tone_text,
         "length": length,
         "split_length": split_length
