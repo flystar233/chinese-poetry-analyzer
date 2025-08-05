@@ -491,4 +491,144 @@ body {
         height: 35px;
         font-size: 1.2em;
     }
+}
+
+/* 词牌介绍样式 */
+.cipai-intro {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-left: 4px solid #667eea;
+    padding: 15px 20px;
+    margin-top: 8px;
+    border-radius: 8px;
+    line-height: 1.8;
+    font-size: 1.05em;
+    color: #495057;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.cipai-intro::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.cipai-intro:hover {
+    background: linear-gradient(135deg, #f1f3f4 0%, #e0e4e7 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* 韵脚模式选择器样式 */
+.yunjiao-selector-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.yunjiao-selector {
+    padding: 12px 15px;
+    border: 2px solid #fed7d7;
+    border-radius: 12px;
+    font-size: 1em;
+    font-family: 'Noto Serif SC', serif;
+    background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #2d3748;
+    font-weight: 500;
+}
+
+.yunjiao-selector:focus {
+    outline: none;
+    border-color: #e53e3e;
+    box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
+    background: linear-gradient(135deg, #fef2f2 0%, #fed7d7 100%);
+}
+
+.yunjiao-selector:hover {
+    border-color: #fc8181;
+    background: linear-gradient(135deg, #fef2f2 0%, #fed7d7 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(229, 62, 62, 0.15);
+}
+
+.yunjiao-selector option {
+    background: white;
+    color: #2d3748;
+    padding: 8px;
+}
+
+.yunjiao-selector-note {
+    font-size: 0.9em;
+    color: #718096;
+    font-style: italic;
+    padding: 8px 12px;
+    background: #f7fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+/* 行内韵脚选择器样式 */
+.yunjiao-selector-inline {
+    margin-left: 10px;
+    padding: 6px 10px;
+    border: 1px solid #fed7d7;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-family: 'Noto Serif SC', serif;
+    background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #2d3748;
+    font-weight: 500;
+    vertical-align: middle;
+    max-width: 300px;
+}
+
+.yunjiao-selector-inline:focus {
+    outline: none;
+    border-color: #e53e3e;
+    box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.1);
+    background: linear-gradient(135deg, #fef2f2 0%, #fed7d7 100%);
+}
+
+.yunjiao-selector-inline:hover {
+    border-color: #fc8181;
+    background: linear-gradient(135deg, #fef2f2 0%, #fed7d7 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(229, 62, 62, 0.15);
+}
+
+.yunjiao-selector-inline option {
+    background: white;
+    color: #2d3748;
+    padding: 6px;
+}
+
+/* 韵脚选择器响应式调整 */
+@media (max-width: 768px) {
+    .yunjiao-selector {
+        font-size: 0.9em;
+        padding: 10px 12px;
+    }
+    
+    .yunjiao-selector-note {
+        font-size: 0.8em;
+        padding: 6px 10px;
+    }
+    
+    .yunjiao-selector-inline {
+        font-size: 0.8em;
+        padding: 4px 8px;
+        margin-left: 8px;
+        max-width: 250px;
+    }
 } 

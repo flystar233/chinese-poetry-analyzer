@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
         html += `
             <div class="result-item">
                 <div class="result-label">输入文本：</div>
-                <div class="result-value">${result.text}</div>
+                <div class="result-value">${result.original_text || result.text}</div>
             </div>
         `;
 
@@ -84,6 +84,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="result-item">
                         <div class="result-label">参考作者：</div>
                         <div class="result-value">${result.author}</div>
+                    </div>
+                `;
+            }
+
+            // 显示词牌介绍
+            if (result.cipai_intro && result.cipai_intro.trim() !== '') {
+                html += `
+                    <div class="result-item">
+                        <div class="result-label">词牌介绍：</div>
+                        <div class="result-value cipai-intro">${result.cipai_intro}</div>
                     </div>
                 `;
             }
@@ -151,10 +161,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 韵脚标注显示
         if (result.yunjiao_detailed && result.yunjiao_detailed.length > 0) {
+            // 韵脚选择器HTML（如果有多个模式）
+            let yunjiaoSelectorHtml = '';
+            if (result.yunjiao_options && result.yunjiao_options.length > 1) {
+                yunjiaoSelectorHtml = `
+                    <select id="yunjiao-selector" class="yunjiao-selector-inline">
+                        ${result.yunjiao_options.map((option, index) => 
+                            `<option value="${option.id}" ${index === 0 ? 'selected' : ''}>
+                                模式 ${option.id + 1}：${option.positions.length}个韵脚 (${option.words.slice(0, 5).join('、')}${option.words.length > 5 ? '...' : ''})
+                            </option>`
+                        ).join('')}
+                    </select>
+                `;
+            }
+            
             html += `
                 <div class="result-item">
-                    <div class="result-label">韵脚标注：</div>
-                    <div class="yunjiao-annotated-text">
+                    <div class="result-label">
+                        韵脚标注：${yunjiaoSelectorHtml}
+                    </div>
+                    <div class="yunjiao-annotated-text" id="yunjiao-annotated-text">
                         ${createAnnotatedText(result.text, result.yunjiao_detailed)}
                     </div>
                 </div>
@@ -164,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `
                 <div class="result-item">
                     <div class="result-label">韵脚统计：</div>
-                    <div class="yunjiao-summary">
+                    <div class="yunjiao-summary" id="yunjiao-summary">
                         ${result.yunjiao_detailed.map(item => 
                             `<div class="yunjiao-summary-item">
                                 <span class="yunjiao-char">${item.word}</span>
@@ -180,6 +206,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         resultContent.innerHTML = html;
         resultSection.style.display = 'block';
+        
+        // 添加韵脚模式选择器事件监听器
+        const yunjiaoSelector = document.getElementById('yunjiao-selector');
+        if (yunjiaoSelector && result.yunjiao_options) {
+            yunjiaoSelector.addEventListener('change', function() {
+                handleYunjiaoSelection(this.value, result);
+            });
+        }
         
         // 滚动到结果区域
         resultSection.scrollIntoView({ 
@@ -255,6 +289,57 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         return result;
+    }
+
+    // 处理韵脚模式选择
+    async function handleYunjiaoSelection(selectedId, originalResult) {
+        const formData = new FormData(form);
+        const data = {
+            text: formData.get('text'),
+            rhymebook: formData.get('rhymebook'),
+            cipai_name: originalResult.cipai_name,
+            author: originalResult.author,
+            yunjiao_id: parseInt(selectedId)
+        };
+
+        try {
+            const response = await fetch('/select_yunjiao', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                // 更新韵脚标注显示
+                const yunjiaoAnnotatedText = document.getElementById('yunjiao-annotated-text');
+                const yunjiaoSummary = document.getElementById('yunjiao-summary');
+                
+                if (yunjiaoAnnotatedText) {
+                    yunjiaoAnnotatedText.innerHTML = createAnnotatedText(originalResult.text, result.yunjiao_detailed);
+                }
+                
+                if (yunjiaoSummary) {
+                    yunjiaoSummary.innerHTML = result.yunjiao_detailed.map(item => 
+                        `<div class="yunjiao-summary-item">
+                            <span class="yunjiao-char">${item.word}</span>
+                            <span class="yunjiao-yunbu">
+                                ${item.yunbu.length > 0 ? item.yunbu.join('、') : '未找到韵部'}
+                            </span>
+                        </div>`
+                    ).join('');
+                }
+            } else {
+                console.error('韵脚模式选择错误:', result.error);
+                alert('韵脚模式选择失败：' + result.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('网络错误，请稍后重试');
+        }
     }
 
     // 添加示例文本按钮功能
