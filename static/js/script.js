@@ -62,18 +62,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let html = '';
 
-        // 基本信息
+        // 基本信息（全宽显示）
         html += `
-            <div class="result-item">
+            <div class="result-item full-width">
                 <div class="result-label">输入文本：</div>
                 <div class="result-value">${result.original_text || result.text}</div>
             </div>
         `;
 
+        // 开始网格布局容器 - 用于短信息项（词牌名、作者、平仄得分）
+        html += '<div class="result-grid">';
+
         // 词牌名
         if (result.cipai_name) {
             html += `
-                <div class="result-item">
+                <div class="result-item compact">
                     <div class="result-label">识别词牌：</div>
                     <div class="result-value">${result.cipai_name}</div>
                 </div>
@@ -81,39 +84,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (result.author) {
                 html += `
-                    <div class="result-item">
+                    <div class="result-item compact">
                         <div class="result-label">参考作者：</div>
                         <div class="result-value">${result.author}</div>
                     </div>
                 `;
             }
-
-            // 显示词牌介绍
-            if (result.cipai_intro && result.cipai_intro.trim() !== '') {
-                html += `
-                    <div class="result-item">
-                        <div class="result-label">词牌介绍：</div>
-                        <div class="result-value cipai-intro">${result.cipai_intro}</div>
-                    </div>
-                `;
-            }
         }
-
-        // 文本统计
-        html += `
-            <div class="result-item">
-                <div class="result-label">文本统计：</div>
-                <div class="result-value">
-                    总字数：${result.length} 字，分段字数：[${result.split_length.join(', ')}]
-                </div>
-            </div>
-        `;
 
         // 平仄得分
         if (result.score !== undefined) {
             const scoreClass = getScoreClass(result.score);
             html += `
-                <div class="result-item">
+                <div class="result-item compact">
                     <div class="result-label">平仄得分：</div>
                     <div class="result-value">
                         <span class="${scoreClass}">${result.score}%</span>
@@ -122,38 +105,45 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
-        // 平仄标注
+        // 结束网格布局容器
+        html += '</div>';
+
+        // 文本统计（单独一行，因为内容较长）
+        html += `
+            <div class="result-item compact">
+                <div class="result-label">文本统计：</div>
+                <div class="result-value">
+                    总字数：${result.length} 字，分段字数：[${result.split_length.join(', ')}]
+                </div>
+            </div>
+        `;
+
+        // 词牌介绍（如果有的话，全宽显示）
+        if (result.cipai_name && result.cipai_intro && result.cipai_intro.trim() !== '') {
+            html += `
+                <div class="result-item full-width">
+                    <div class="result-label">词牌介绍：</div>
+                    <div class="result-value cipai-intro">${result.cipai_intro}</div>
+                </div>
+            `;
+        }
+
+        // 平仄标注（全宽显示）
         if (result.tone_text && result.tone_text.length > 0) {
             html += `
-                <div class="result-item">
+                <div class="result-item full-width">
                     <div class="result-label">平仄标注：</div>
                     <div class="tone-display">
-                        ${result.tone_text.map(([char, tone]) => {
-                            const toneClass = getToneClass(tone);
-                            return `<span class="tone-char ${toneClass}" title="${tone}">${char}</span>`;
-                        }).join('')}
+                        ${createToneDisplay(result.tone_text, result.issues || [])}
                     </div>
                 </div>
             `;
         }
 
-        // 不合平仄的字
-        if (result.issues && result.issues.length > 0) {
+        // 平仄合规提示
+        if (result.score === 100) {
             html += `
-                <div class="result-item">
-                    <div class="result-label">不合平仄的字：</div>
-                    <ul class="issues-list">
-                        ${result.issues.map(issue => 
-                            `<li class="issue-item">
-                                字："${issue.word}" - 实际：${issue.actual}，应为：${issue.expected}
-                            </li>`
-                        ).join('')}
-                    </ul>
-                </div>
-            `;
-        } else if (result.score === 100) {
-            html += `
-                <div class="result-item">
+                <div class="result-item full-width">
                     <div class="success-message">🎉 恭喜！全部平仄合规！</div>
                 </div>
             `;
@@ -176,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             html += `
-                <div class="result-item">
+                <div class="result-item full-width">
                     <div class="result-label">
                         韵脚标注：${yunjiaoSelectorHtml}
                     </div>
@@ -186,9 +176,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
 
-            // 韵脚统计
+            // 韵脚统计（使用网格布局）
             html += `
-                <div class="result-item">
+                <div class="result-item full-width">
                     <div class="result-label">韵脚统计：</div>
                     <div class="yunjiao-summary" id="yunjiao-summary">
                         ${result.yunjiao_detailed.map(item => 
@@ -251,11 +241,48 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // 创建带有不合平仄字突出显示的平仄标注
+    function createToneDisplay(toneText, issues) {
+        // 创建不合平仄字的映射，key是字符+位置，value是错误信息
+        const issueMap = {};
+        issues.forEach(issue => {
+            // 查找每个错误字符在toneText中的位置
+            toneText.forEach((item, index) => {
+                const [char, tone] = item;
+                if (char === issue.word && tone === issue.actual) {
+                    const key = `${char}_${index}`;
+                    if (!issueMap[key]) { // 避免重复映射
+                        issueMap[key] = issue;
+                    }
+                }
+            });
+        });
+
+        return toneText.map(([char, tone], index) => {
+            const key = `${char}_${index}`;
+            const issue = issueMap[key];
+            
+            if (issue) {
+                // 这是一个不合平仄的字
+                const basicToneClass = getToneClass(tone);
+                const tooltipText = `错误：实际为"${issue.actual}"，应为"${issue.expected}"`;
+                return `<span class="tone-char ${basicToneClass} tone-incorrect" title="错误：${issue.actual}→${issue.expected}">
+                    ${char}
+                    <span class="tone-incorrect-tooltip">${tooltipText}</span>
+                </span>`;
+            } else {
+                // 正常的字
+                const toneClass = getToneClass(tone);
+                return `<span class="tone-char ${toneClass}" title="${tone}">${char}</span>`;
+            }
+        }).join('');
+    }
+
     // 创建带韵脚标注的文本
     function createAnnotatedText(text, yunjiaoDetailed) {
         if (!text || !yunjiaoDetailed || yunjiaoDetailed.length === 0) {
-            // 如果没有韵脚信息，仍然要按标点符号分行
-            return text.replace(/([，。])/g, '$1<br/>');
+            // 如果没有韵脚信息，按阕分行显示
+            return formatTextByQue(text);
         }
 
         // 创建位置到韵脚信息的映射
@@ -263,6 +290,9 @@ document.addEventListener('DOMContentLoaded', function() {
         yunjiaoDetailed.forEach(item => {
             positionMap[item.position] = item;
         });
+
+        // 找到阕的分隔位置
+        const queBreakPositions = findQueBreakPositions(text);
 
         let result = '';
         for (let i = 0; i < text.length; i++) {
@@ -280,15 +310,83 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="yunjiao-tooltip">${yunbuText}</span>
                 </span>`;
             } else {
-                // 普通字符，检查是否是标点符号
-                if (char === '，' || char === '。') {
-                    result += char + '<br/>';  // 在逗号和句号后添加换行
-                } else {
-                    result += char;
-                }
+                result += char;
+            }
+            
+            // 在阕分隔位置添加换行
+            if (queBreakPositions.includes(i)) {
+                result += '<br/><br/>'; // 阕间用两个换行分隔，更清晰
             }
         }
         return result;
+    }
+
+    // 根据阕结构格式化文本显示
+    function formatTextByQue(text) {
+        const breakPoint = findQueBreakPoint(text);
+        
+        if (breakPoint > 0 && breakPoint < text.length - 1) {
+            const shangque = text.substring(0, breakPoint + 1);
+            const xiaque = text.substring(breakPoint + 1);
+            return shangque + '<br/><br/>' + xiaque;
+        }
+        
+        // 如果无法找到合适的分隔点，返回原文
+        return text;
+    }
+
+    // 找到阕的分隔位置
+    function findQueBreakPositions(text) {
+        const breakPoint = findQueBreakPoint(text);
+        return breakPoint > 0 && breakPoint < text.length - 1 ? [breakPoint] : [];
+    }
+
+    // 智能寻找阕的分隔点
+    function findQueBreakPoint(text) {
+        const textLength = text.length;
+        const centerPoint = Math.floor(textLength / 2);
+        
+        // 定义搜索范围：中心点前后30%的范围
+        const searchRange = Math.floor(textLength * 0.3);
+        const searchStart = Math.max(Math.floor(textLength * 0.3), centerPoint - searchRange);
+        const searchEnd = Math.min(Math.floor(textLength * 0.7), centerPoint + searchRange);
+        
+        // 收集搜索范围内的标点符号位置
+        const punctuationPositions = [];
+        
+        for (let i = searchStart; i <= searchEnd; i++) {
+            const char = text[i];
+            if (char === '。') {
+                // 句号的优先级最高
+                punctuationPositions.push({ pos: i, priority: 3, char: char });
+            } else if (char === '，') {
+                // 逗号的优先级中等
+                punctuationPositions.push({ pos: i, priority: 2, char: char });
+            } else if (char === '、' || char === '；') {
+                // 顿号和分号的优先级较低
+                punctuationPositions.push({ pos: i, priority: 1, char: char });
+            }
+        }
+        
+        if (punctuationPositions.length === 0) {
+            // 如果搜索范围内没有标点，返回中心点
+            return centerPoint;
+        }
+        
+        // 按优先级和距离中心点的远近排序
+        punctuationPositions.sort((a, b) => {
+            // 首先按优先级排序（高优先级在前）
+            if (a.priority !== b.priority) {
+                return b.priority - a.priority;
+            }
+            // 同等优先级下，距离中心点越近越好
+            const distanceA = Math.abs(a.pos - centerPoint);
+            const distanceB = Math.abs(b.pos - centerPoint);
+            return distanceA - distanceB;
+        });
+        
+        // 返回最佳分隔点
+        return punctuationPositions[0].pos;
     }
 
     // 处理韵脚模式选择

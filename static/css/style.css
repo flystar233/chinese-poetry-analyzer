@@ -1,3 +1,12 @@
+/* 自定义字体定义 */
+@font-face {
+    font-family: 'LXGW WenKai';
+    src: url('../fonts/LXGWWenKai-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap; /* 优化字体加载性能 */
+}
+
 /* 重置和基础样式 */
 * {
     margin: 0;
@@ -6,7 +15,7 @@
 }
 
 body {
-    font-family: 'Noto Serif SC', serif;
+    font-family: 'LXGW WenKai', 'Noto Serif SC', serif;
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     min-height: 100vh;
     color: #2c3e50;
@@ -93,7 +102,7 @@ body {
     border: 2px solid #e1e8ed;
     border-radius: 12px;
     font-size: 1em;
-    font-family: 'Noto Serif SC', serif;
+    font-family: 'LXGW WenKai', 'Noto Serif SC', serif;
     line-height: 1.5;
     resize: vertical;
     transition: all 0.3s ease;
@@ -110,7 +119,7 @@ body {
     border: 2px solid #e1e8ed;
     border-radius: 12px;
     font-size: 1em;
-    font-family: 'Noto Serif SC', serif;
+    font-family: 'LXGW WenKai', 'Noto Serif SC', serif;
     background: white;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -212,6 +221,29 @@ body {
     border-left: 4px solid #667eea;
 }
 
+/* 紧凑型结果项样式 - 用于简短信息 */
+.result-item.compact {
+    margin-bottom: 15px;
+    padding: 12px 15px;
+}
+
+/* 结果网格布局 - 让短信息横向排列 */
+.result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.result-grid .result-item {
+    margin-bottom: 0;
+}
+
+/* 全宽结果项 - 用于长文本内容 */
+.result-item.full-width {
+    grid-column: 1 / -1;
+}
+
 .result-label {
     font-weight: 600;
     color: #34495e;
@@ -268,7 +300,7 @@ body {
 }
 
 .tone-display {
-    font-family: 'Noto Serif SC', serif;
+    font-family: 'LXGW WenKai', 'Noto Serif SC', serif;
     font-size: 1.2em;
     line-height: 1.8;
     margin: 15px 0;
@@ -302,6 +334,68 @@ body {
     background: #f7fafc;
     color: #718096;
     border: 1px solid #e2e8f0;
+}
+
+/* 不合平仄的字样式 */
+.tone-incorrect {
+    border: 2px solid #e53e3e !important;
+    position: relative;
+    cursor: pointer;
+    animation: pulse-incorrect 2s infinite;
+    font-weight: 700 !important;
+}
+
+.tone-incorrect:hover {
+    transform: scale(1.1);
+    border-color: #c53030 !important;
+}
+
+/* 不合平仄字的提示框 */
+.tone-incorrect-tooltip {
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.8em;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.tone-incorrect-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+.tone-incorrect:hover .tone-incorrect-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 错误字符的脉冲动画 */
+@keyframes pulse-incorrect {
+    0% {
+        box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(229, 62, 62, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(229, 62, 62, 0);
+    }
 }
 
 .error-message {
@@ -353,6 +447,12 @@ body {
         gap: 15px;
     }
     
+    /* 移动设备上网格布局改为单列 */
+    .result-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
     .yunjiao-list {
         flex-direction: column;
     }
@@ -364,7 +464,7 @@ body {
 
 /* 韵脚标注样式 */
 .yunjiao-annotated-text {
-    font-family: 'Noto Serif SC', serif;
+    font-family: 'LXGW WenKai', 'Noto Serif SC', serif;
     font-size: 1.3em;
     line-height: 2.2;
     margin: 15px 0;
@@ -432,8 +532,8 @@ body {
 /* 韵脚统计样式 */
 .yunjiao-summary {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
     margin-top: 15px;
 }
 
@@ -484,6 +584,7 @@ body {
     
     .yunjiao-summary {
         grid-template-columns: 1fr;
+        gap: 10px;
     }
     
     .yunjiao-char {
@@ -491,38 +592,20 @@ body {
         height: 35px;
         font-size: 1.2em;
     }
+    
+    /* 移动设备上的紧凑布局 */
+    .result-item.compact {
+        padding: 10px 12px;
+    }
 }
 
 /* 词牌介绍样式 */
 .cipai-intro {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-left: 4px solid #667eea;
-    padding: 15px 20px;
     margin-top: 8px;
-    border-radius: 8px;
     line-height: 1.8;
     font-size: 1.05em;
     color: #495057;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    position: relative;
-    overflow: hidden;
-}
-
-.cipai-intro::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
-}
-
-.cipai-intro:hover {
-    background: linear-gradient(135deg, #f1f3f4 0%, #e0e4e7 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    font-style: italic;
 }
 
 /* 韵脚模式选择器样式 */
@@ -538,7 +621,7 @@ body {
     border: 2px solid #fed7d7;
     border-radius: 12px;
     font-size: 1em;
-    font-family: 'Noto Serif SC', serif;
+    font-family: 'LXGW WenKai', 'Noto Serif SC', serif;
     background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);
     cursor: pointer;
     transition: all 0.3s ease;
@@ -583,7 +666,7 @@ body {
     border: 1px solid #fed7d7;
     border-radius: 8px;
     font-size: 0.9em;
-    font-family: 'Noto Serif SC', serif;
+    font-family: 'LXGW WenKai', 'Noto Serif SC', serif;
     background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);
     cursor: pointer;
     transition: all 0.3s ease;
