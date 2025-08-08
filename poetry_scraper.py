@@ -6,7 +6,6 @@
 """
 
 import re
-import csv
 import requests
 from bs4 import BeautifulSoup
 from typing import List, Dict, Any

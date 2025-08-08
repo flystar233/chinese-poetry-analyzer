@@ -10,8 +10,9 @@
 <body>
     <div class="container">
         <header class="header">
+            <button id="theme-toggle" class="theme-toggle" aria-label="切换主题" title="切换主题">🌙</button>
             <h1 class="title">古诗词平仄分析器</h1>
-            <p class="subtitle">基于钦定词谱智能分析词牌名、平仄合规性及韵脚韵部</p>
+            <p class="subtitle">智能识别词牌 · 平仄校验 · 韵脚标注</p>
         </header>
 
         <main class="main-content">
@@ -27,25 +28,55 @@
                             rows="6"
                             required
                         ></textarea>
+                        <div class="helper-text">小提示：双击文本框自动填入示例；分析后可在下方切换韵脚模式</div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="rhymebook-select" class="label">韵书选择：</label>
+                    <div class="controls-bar">
+                        <div class="controls-left">
+                            <label for="rhymebook-select" class="label">韵书：</label>
                             <select id="rhymebook-select" name="rhymebook" class="select">
                                 <option value="1">词林正韵</option>
                                 <option value="2" selected>中华新韵</option>
                             </select>
                         </div>
-
-
+                        <div class="controls-right">
+                            <button type="button" class="submit-btn fillword-btn" id="fillword-btn">
+                                <span class="btn-text">从头填词</span>
+                            </button>
+                            <button type="submit" class="submit-btn" id="analyze-btn">
+                                <span class="btn-text">直接分析</span>
+                                <div class="loading-spinner" style="display: none;"></div>
+                            </button>
+                        </div>
                     </div>
-
-                    <button type="submit" class="submit-btn" id="analyze-btn">
-                        <span class="btn-text">开始分析</span>
-                        <div class="loading-spinner" style="display: none;"></div>
-                    </button>
                 </form>
+            </div>
+
+            <!-- 填词选择区域 -->
+            <div class="fillword-section" id="fillword-section" style="display: none;">
+                <div class="result-card">
+                    <div class="fillword-selection">
+                        <div class="form-group">
+                            <label for="cipai-search" class="label">搜索词牌：</label>
+                            <div class="cipai-search-container">
+                                <input type="text" id="cipai-search" name="cipai-search" class="text-input" 
+                                       placeholder="输入词牌名进行搜索，如：水调歌头、满江红..." 
+                                       autocomplete="off">
+                                <div class="cipai-suggestions" id="cipai-suggestions" style="display: none;"></div>
+                            </div>
+                        </div>
+                        <button type="button" class="submit-btn" id="start-fillword-btn" style="display: none;">
+                            <span class="btn-text">开始填词</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 填词框架区域 -->
+            <div class="fillword-framework-section" id="fillword-framework-section" style="display: none;">
+                <div class="result-card">
+                    <div id="fillword-framework-content"></div>
+                </div>
             </div>
 
             <div class="result-section" id="result-section" style="display: none;">

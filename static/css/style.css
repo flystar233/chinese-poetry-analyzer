@@ -22,6 +22,82 @@ body {
     line-height: 1.6;
 }
 
+/* 深色主题基础 */
+body.dark {
+    background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
+    color: #e5e7eb;
+}
+
+/* 容器、卡片等 */
+body.dark .header {
+    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+body.dark .input-section,
+body.dark .result-card {
+    background: #0b1220;
+    border-color: #1f2a44;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+body.dark .label { color: #e5e7eb; }
+body.dark .subtitle { color: #cbd5e1; opacity: 0.9; }
+body.dark .result-title { color: #e2e8f0; border-bottom-color: #334155; }
+
+/* 输入与选择器 */
+body.dark .text-input,
+body.dark .select {
+    background: #0b1220;
+    color: #e5e7eb;
+    border-color: #1f2a44;
+}
+body.dark .text-input:focus,
+body.dark .select:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+}
+
+/* 控件条 */
+body.dark .controls-bar {
+    background: #0f172a;
+    border-color: #1f2a44;
+}
+
+/* 按钮 */
+body.dark .submit-btn { box-shadow: 0 8px 20px rgba(0,0,0,0.35); }
+body.dark .fillword-btn { filter: saturate(1.05); }
+body.dark .submit-btn:hover { box-shadow: 0 12px 28px rgba(0,0,0,0.45); }
+
+/* 结果项与提示 */
+body.dark .result-item { background: #0f172a; border-left-color: #60a5fa; }
+body.dark .result-value { color: #e5e7eb; }
+body.dark .success-message { background: #0c1a10; border-color: #1f5133; color: #b7f0cf; }
+body.dark .error-message { background: #2a0f12; border-color: #5b1e24; color: #fecaca; }
+
+/* 平仄标注块 */
+body.dark .tone-display { background: #0f172a; border-color: #1f2a44; }
+body.dark .tone-ping { background: #053b34; color: #c7f9f1; border-color: #1e9384; }
+body.dark .tone-ze { background: #3b0f12; color: #fecaca; border-color: #7f1d1d; }
+body.dark .tone-unknown { background: #0b1220; color: #94a3b8; border-color: #1f2a44; }
+body.dark .tone-incorrect { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.5); }
+body.dark .tone-incorrect:hover { border-color: #ef4444 !important; }
+body.dark .tone-incorrect-tooltip { background: rgba(17,24,39,0.95); }
+body.dark .tone-incorrect-tooltip::after { border-top-color: rgba(17,24,39,0.95); }
+
+/* 韵脚标注与统计 */
+body.dark .yunjiao-annotated-text { background: linear-gradient(135deg, #2a0f12 0%, #3b1d1f 100%); border-color: #7f1d1d; }
+body.dark .yunjiao-char-annotated { color: #fca5a5; text-decoration-color: #ef4444; }
+body.dark .yunjiao-tooltip { background: rgba(17,24,39,0.95); }
+body.dark .yunjiao-tooltip::after { border-top-color: rgba(17,24,39,0.95); }
+body.dark .yunjiao-summary-item { background: linear-gradient(135deg, #063c37 0%, #0f3c37 100%); border-color: #155e75; }
+body.dark .yunjiao-char { background: #0ea5a5; color: #0b1220; }
+body.dark .yunjiao-yunbu { color: #cbd5e1; }
+
+/* Toast/通知 */
+body.dark .paste-notification-success { background: linear-gradient(135deg, #166534 0%, #15803d 100%); border-left-color: #14532d; }
+body.dark .paste-notification-error { background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%); border-left-color: #7f1d1d; }
+
 /* 容器样式 */
 .container {
     max-width: 1200px;
@@ -34,6 +110,7 @@ body {
 
 /* 头部样式 */
 .header {
+    position: relative;
     text-align: center;
     padding: 40px 0;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -41,6 +118,37 @@ body {
     color: white;
     margin-bottom: 30px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* 主题切换按钮 */
+.theme-toggle {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(6px);
+}
+
+.theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.28);
+    transform: translateY(-1px);
+}
+
+/* 深色下图标按钮的细节对比提升 */
+body.dark .theme-toggle {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .title {
@@ -51,9 +159,9 @@ body {
 }
 
 .subtitle {
-    font-size: 1.1em;
+    font-size: 1.05em;
     opacity: 0.9;
-    font-weight: 300;
+    font-weight: 400;
 }
 
 /* 主内容区域 */
@@ -67,7 +175,7 @@ body {
 /* 输入区域 */
 .input-section {
     background: white;
-    padding: 40px;
+    padding: 28px 28px 22px 28px;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     border: 1px solid #e1e8ed;
@@ -76,7 +184,7 @@ body {
 .form {
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 18px;
 }
 
 .form-group {
@@ -98,7 +206,7 @@ body {
 }
 
 .text-input {
-    padding: 15px;
+    padding: 14px 16px;
     border: 2px solid #e1e8ed;
     border-radius: 12px;
     font-size: 1em;
@@ -131,11 +239,20 @@ body {
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+/* 按钮行布局 */
+.button-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
 .submit-btn {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    padding: 15px 30px;
+    padding: 12px 22px;
     border-radius: 12px;
     font-size: 1.1em;
     font-weight: 500;
@@ -145,7 +262,13 @@ body {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    min-height: 50px;
+    min-height: 44px;
+    flex: 0 0 auto;
+    max-width: none;
+}
+
+.fillword-btn {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
 .submit-btn:hover {
@@ -196,7 +319,7 @@ body {
 
 .result-card {
     background: white;
-    padding: 40px;
+    padding: 28px;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     border: 1px solid #e1e8ed;
@@ -214,8 +337,8 @@ body {
 
 /* 结果内容样式 */
 .result-item {
-    margin-bottom: 20px;
-    padding: 15px;
+    margin-bottom: 14px;
+    padding: 12px 14px;
     background: #f8f9fa;
     border-radius: 10px;
     border-left: 4px solid #667eea;
@@ -301,10 +424,10 @@ body {
 
 .tone-display {
     font-family: 'LXGW WenKai', 'Noto Serif SC', serif;
-    font-size: 1.2em;
-    line-height: 1.8;
-    margin: 15px 0;
-    padding: 20px;
+    font-size: 1.15em;
+    line-height: 1.9;
+    margin: 10px 0 8px 0;
+    padding: 16px;
     background: #f8f9fa;
     border-radius: 10px;
     border: 1px solid #e1e8ed;
@@ -312,10 +435,10 @@ body {
 
 .tone-char {
     display: inline-block;
-    margin: 2px;
-    padding: 4px 6px;
+    margin: 1px 2px;
+    padding: 2px 5px;
     border-radius: 4px;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .tone-ping {
@@ -465,16 +588,16 @@ body {
 /* 韵脚标注样式 */
 .yunjiao-annotated-text {
     font-family: 'LXGW WenKai', 'Noto Serif SC', serif;
-    font-size: 1.3em;
-    line-height: 2.2;
-    margin: 15px 0;
-    padding: 25px;
+    font-size: 1.2em;
+    line-height: 2.1;
+    margin: 8px 0 4px 0;
+    padding: 18px;
     background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
     border-radius: 12px;
-    border: 2px solid #fc8181;
+    border: 1px solid #fc8181;
     position: relative;
     overflow: visible;
-    text-align: center;  /* 居中显示，更符合古诗词的传统排版 */
+    text-align: center;
 }
 
 .yunjiao-char-annotated {
@@ -713,5 +836,513 @@ body {
         padding: 4px 8px;
         margin-left: 8px;
         max-width: 250px;
+    }
+}
+
+/* 填词选择区域样式 */
+.fillword-section {
+    animation: slideIn 0.5s ease-out;
+}
+
+.fillword-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-top: 20px;
+}
+
+/* 填词框架样式 */
+.fillword-framework-section {
+    animation: slideIn 0.5s ease-out;
+}
+
+#fillword-framework-content {
+    padding-top: 20px;
+}
+
+.fillword-framework {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    font-family: 'LXGW WenKai', 'Noto Serif SC', serif;
+}
+
+.fillword-que {
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    padding: 16px 18px 12px 18px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    margin-bottom: 16px;
+}
+
+
+
+.fillword-que-title-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #667eea;
+    padding-bottom: 8px;
+}
+/* 顶部控件条 */
+.controls-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #f8f9fa;
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+
+.controls-left, .controls-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.helper-text {
+    color: #718096;
+    font-size: 0.9em;
+    margin-top: 6px;
+}
+
+.fillword-que-title {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #495057;
+    text-align: center;
+    flex: 1;
+}
+
+.paste-btn {
+    position: absolute;
+    right: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.paste-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+.paste-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fillword-sentence {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 紧凑布局 - 阕行样式 */
+.fillword-que-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0;
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+/* 行内句子容器 */
+.fillword-sentence-inline {
+    display: inline-flex;
+    gap: 3px;
+    align-items: center;
+}
+
+/* 逗号分隔符 */
+.fillword-comma {
+    font-size: 1.2em;
+    color: #666;
+    margin: 0 6px;
+    font-weight: 500;
+}
+
+/* 行内输入框样式 */
+.fillword-char-input-inline {
+    width: 32px;
+    height: 32px;
+    font-size: 1em;
+    margin: 2px;
+}
+
+.fillword-char-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.fillword-char-input {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #ced4da;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1.2em;
+    font-family: 'LXGW WenKai', 'Noto Serif SC', serif;
+    font-weight: 500;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.fillword-char-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: scale(1.05);
+}
+
+.fillword-char-input::placeholder {
+    color: #999999;
+    font-size: 0.9em;
+    font-weight: 400;
+}
+
+/* 平仄检查结果样式 */
+.fillword-char-input.tone-error {
+    border-color: #dc3545 !important;
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25) !important;
+}
+
+.fillword-char-input.tone-correct {
+    background-color: rgba(40, 167, 69, 0.1) !important;
+}
+
+/* 最终分析按钮样式 */
+.fillword-final-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.fillword-final-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.fillword-final-btn:disabled {
+    background: #ccc;
+    color: #999;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+
+
+/* 填词操作按钮 */
+.fillword-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.fillword-action-btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'LXGW WenKai', 'Noto Serif SC', serif;
+}
+
+.fillword-clear-btn {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+}
+
+.fillword-check-btn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.fillword-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .button-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .submit-btn {
+        max-width: none;
+        width: 100%;
+    }
+    
+    .fillword-que {
+        padding: 20px;
+    }
+    
+    .fillword-char-input {
+        width: 35px;
+        height: 35px;
+        font-size: 1.1em;
+    }
+    
+    .fillword-char-input-inline {
+        width: 28px;
+        height: 28px;
+        font-size: 0.9em;
+        margin: 1px;
+    }
+    
+    .fillword-comma {
+        font-size: 1.1em;
+        margin: 0 4px;
+    }
+    
+    .fillword-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .fillword-action-btn {
+        width: 100%;
+    }
+}
+
+/* 词牌搜索样式 */
+.cipai-search-container {
+    position: relative;
+    width: 100%;
+}
+
+.cipai-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e1e8ed;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    margin-top: 4px;
+}
+
+.cipai-suggestion-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f3f4;
+    transition: background-color 0.2s ease;
+    font-family: 'LXGW WenKai', 'Noto Serif SC', serif;
+}
+
+.cipai-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.cipai-suggestion-item:hover {
+    background-color: #f8f9fa;
+}
+
+.cipai-suggestion-item.selected {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.cipai-suggestion-name {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 4px;
+}
+
+.cipai-suggestion-info {
+    font-size: 0.9em;
+    color: #6c757d;
+}
+
+.cipai-suggestion-highlight {
+    background-color: #fff3cd;
+    padding: 1px 2px;
+    border-radius: 2px;
+    font-weight: 600;
+}
+
+.no-suggestions {
+    padding: 16px;
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* 粘贴通知样式 */
+.paste-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-family: 'LXGW WenKai', 'Noto Serif SC', serif;
+    font-weight: 500;
+    z-index: 10000;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.paste-notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.paste-notification-success {
+    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+    color: white;
+    border-left: 4px solid #2e7d32;
+}
+
+.paste-notification-error {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    color: white;
+    border-left: 4px solid #c62828;
+}
+
+/* 图例容器样式 */
+.fillword-legend-container {
+    position: relative;
+    height: 0;
+    margin-top: -20px;
+    pointer-events: none;
+}
+
+/* 图例样式 */
+.fillword-legend {
+    position: absolute;
+    top: 0;
+    right: 15px;
+    font-size: 0.85em;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 6px;
+    padding: 6px 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.fillword-legend-items {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.fillword-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.fillword-legend-demo {
+    width: 24px;
+    height: 24px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.8em;
+    font-family: 'LXGW WenKai', 'Noto Serif SC', serif;
+    font-weight: 500;
+    background: white;
+    pointer-events: none;
+}
+
+/* 图例示例的平仄正确样式 */
+.fillword-legend-demo.tone-correct {
+    background-color: rgba(40, 167, 69, 0.1) !important;
+}
+
+/* 图例示例的平仄错误样式 */
+.fillword-legend-demo.tone-error {
+    border-color: #dc3545 !important;
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25) !important;
+}
+
+.fillword-legend-text {
+    color: #6c757d;
+    font-size: 0.8em;
+    white-space: nowrap;
+}
+
+
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .paste-notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        transform: translateY(-100%);
+    }
+    
+    .paste-notification.show {
+        transform: translateY(0);
+    }
+    
+    .paste-btn {
+        padding: 4px 8px;
+        font-size: 1em;
+    }
+    
+    /* 移动端图例样式调整 */
+    .fillword-legend {
+        position: static;
+        margin-top: 15px;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 10px;
+        border-radius: 8px;
+    }
+    
+    .fillword-legend-items {
+        justify-content: center;
+        gap: 12px;
+    }
+    
+    .fillword-legend-demo {
+        width: 20px;
+        height: 20px;
+        font-size: 0.7em;
+    }
+    
+    .fillword-legend-text {
+        font-size: 0.75em;
     }
 } 
