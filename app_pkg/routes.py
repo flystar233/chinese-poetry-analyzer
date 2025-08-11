@@ -129,15 +129,57 @@ def get_fillword_framework():
     data = request.get_json()
     cipai_name = data.get('cipai_name', '')
     author = data.get('author', '')
+    unique_key = data.get('unique_key', '')  # 新增：用于识别具体的记录
+    
     if not all([cipai_name.strip(), author.strip()]):
         return fail("缺少词牌名或作者信息")
     try:
         cipai_data = load_cipai()
         matched_row = None
-        for _, row in cipai_data.iterrows():
-            if (str(row['词牌名']).strip() == cipai_name.strip() and str(row['作者']).strip() == author.strip()):
-                matched_row = row
-                break
+        
+        # 如果提供了unique_key，使用更精确的匹配逻辑
+        if unique_key:
+            # 从unique_key解析出原始信息和序号
+            if '-' in unique_key and unique_key.split('-')[-1].isdigit():
+                # 格式: cipai_name|author|total_chars-suffix
+                base_key, suffix = unique_key.rsplit('-', 1)
+                try:
+                    suffix_num = int(suffix)
+                    # 找到符合条件的第suffix_num个记录
+                    count = 0
+                    for _, row in cipai_data.iterrows():
+                        row_cipai_name = str(row['词牌名']).strip()
+                        row_author = str(row['作者']).strip()
+                        row_total_chars = int(row['总数'])
+                        row_key = f"{row_cipai_name}|{row_author}|{row_total_chars}"
+                        
+                        if row_key == base_key:
+                            count += 1
+                            if count == suffix_num:
+                                matched_row = row
+                                break
+                except ValueError:
+                    pass  # 如果suffix不是数字，回退到原来的匹配方式
+            else:
+                # unique_key没有suffix，说明只有一个记录，直接匹配
+                for _, row in cipai_data.iterrows():
+                    row_cipai_name = str(row['词牌名']).strip()
+                    row_author = str(row['作者']).strip()
+                    row_total_chars = int(row['总数'])
+                    row_key = f"{row_cipai_name}|{row_author}|{row_total_chars}"
+                    
+                    if row_key == unique_key:
+                        matched_row = row
+                        break
+        
+        # 如果通过unique_key没有找到，回退到原来的匹配方式（取第一个匹配的）
+        if matched_row is None:
+            for _, row in cipai_data.iterrows():
+                if (str(row['词牌名']).strip() == cipai_name.strip() and 
+                    str(row['作者']).strip() == author.strip()):
+                    matched_row = row
+                    break
+        
         if matched_row is None:
             return fail("未找到匹配的词牌")
 
@@ -188,4 +230,47 @@ def get_char_tone():
     except Exception as e:
         return fail(str(e))
 
+
+@bp.route('/get_char_tones', methods=['POST'])
+def get_char_tones():
+    data = request.get_json()
+    chars = data.get('chars', '')
+    # 允许传数组或字符串
+    if isinstance(chars, list):
+        try:
+            text = ''.join([str(c) for c in chars if isinstance(c, str)])
+        except Exception:
+            text = ''
+    else:
+        text = str(chars or '')
+
+    if not text:
+        return fail("缺少字符参数")
+
+    try:
+        tone_dict, _ = load_rhymebook_with_yunbu('2')
+
+        items = []
+        for ch in text:
+            tone = tone_dict.get(ch, '未知')
+            if tone in ['平', '仄']:
+                result_tone = tone
+            elif tone == '未知':
+                result_tone = '未知'
+            else:
+                if '平' in tone or tone in ['一声', '二声']:
+                    result_tone = '平'
+                elif '仄' in tone or tone in ['三声', '四声', '上声', '去声', '入声']:
+                    result_tone = '仄'
+                else:
+                    result_tone = '未知'
+            items.append({
+                "char": ch,
+                "tone": result_tone,
+                "original_tone": tone
+            })
+
+        return ok({"items": items})
+    except Exception as e:
+        return fail(str(e))
 

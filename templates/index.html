@@ -28,7 +28,10 @@
                             rows="6"
                             required
                         ></textarea>
-                        <div class="helper-text">小提示：双击文本框自动填入示例；分析后可在下方切换韵脚模式</div>
+                        <div class="button-row">
+                            <button type="button" id="example-btn" class="aux-btn">填入示例</button>
+                            <button type="button" id="clear-input-btn" class="aux-btn">清空输入</button>
+                        </div>
                     </div>
 
                     <div class="controls-bar">
@@ -58,11 +61,21 @@
                     <div class="fillword-selection">
                         <div class="form-group">
                             <label for="cipai-search" class="label">搜索词牌：</label>
-                            <div class="cipai-search-container">
-                                <input type="text" id="cipai-search" name="cipai-search" class="text-input" 
-                                       placeholder="输入词牌名进行搜索，如：水调歌头、满江红..." 
-                                       autocomplete="off">
-                                <div class="cipai-suggestions" id="cipai-suggestions" style="display: none;"></div>
+                            <div class="cipai-search-row">
+                                <div class="cipai-search-container">
+                                    <input type="text" id="cipai-search" name="cipai-search" class="text-input" 
+                                           placeholder="输入词牌名进行搜索，如：水调歌头、满江红..." 
+                                           autocomplete="off">
+                                    <div class="cipai-suggestions" id="cipai-suggestions" style="display: none;"></div>
+                                </div>
+                                <div class="common-cipai-buttons">
+                                    <span class="common-cipai-label">常用词牌：</span>
+                                    <button type="button" class="common-cipai-btn" data-cipai="浣溪沙">浣溪沙</button>
+                                    <button type="button" class="common-cipai-btn" data-cipai="水调歌头">水调歌头</button>
+                                    <button type="button" class="common-cipai-btn" data-cipai="鹧鸪天">鹧鸪天</button>
+                                    <button type="button" class="common-cipai-btn" data-cipai="临江仙">临江仙</button>
+                                    <button type="button" class="common-cipai-btn" data-cipai="念奴娇">念奴娇</button>
+                                </div>
                             </div>
                         </div>
                         <button type="button" class="submit-btn" id="start-fillword-btn" style="display: none;">

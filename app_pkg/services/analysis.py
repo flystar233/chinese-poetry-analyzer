@@ -40,6 +40,9 @@ def load_rhymebook_with_yunbu(rhymebook_choice: str) -> Tuple[Dict[str, str], Di
     return build_tone_dict(rhymebook_data)
 
 
+# 候选字功能已取消；不再基于外部词频或韵部给出替换建议。
+
+
 @lru_cache(maxsize=1)
 def load_cipai() -> pd.DataFrame:
     cipai_path = 'data/cipai_with_statistics_qdcp.csv'
@@ -90,14 +93,27 @@ def load_yunjiao(filepath: str = 'data/yunjiao.csv') -> Dict[str, List[List[int]
 @lru_cache(maxsize=1)
 def get_cipai_summary_list() -> Tuple[List[Dict[str, Any]], int]:
     """构建去重排序后的词牌列表，并缓存结果。
+    当发现词牌+作者+字数的记录大于1时，在词牌选择字符串中后面再加个-1，-2等。
 
     返回 (cipai_list, default_index)
     """
     cipai_data = load_cipai()
 
     cipai_list: List[Dict[str, Any]] = []
-    seen = set()
-
+    
+    # 第一步：统计每个 词牌名+作者+字数 组合的出现次数
+    combination_counts: Dict[str, int] = {}
+    for _, row in cipai_data.iterrows():
+        cipai_name = str(row['词牌名']).strip()
+        author = str(row['作者']).strip()
+        total_chars = int(row['总数'])
+        
+        key = f"{cipai_name}|{author}|{total_chars}"
+        combination_counts[key] = combination_counts.get(key, 0) + 1
+    
+    # 第二步：为每个记录分配显示名称，如果有重复则添加序号
+    seen_counts: Dict[str, int] = {}
+    
     for _, row in cipai_data.iterrows():
         cipai_name = str(row['词牌名']).strip()
         author = str(row['作者']).strip()
@@ -105,19 +121,29 @@ def get_cipai_summary_list() -> Tuple[List[Dict[str, Any]], int]:
         split_length = row['分段字数']
 
         key = f"{cipai_name}|{author}|{total_chars}"
-        if key in seen:
-            continue
-        seen.add(key)
+        
+        # 如果这个组合只有一个记录，不添加序号
+        if combination_counts[key] == 1:
+            display_name = f"{cipai_name} - {author} ({total_chars}字)"
+            unique_key = key  # 用于前端识别的唯一标识
+        else:
+            # 如果有多个记录，添加序号
+            seen_counts[key] = seen_counts.get(key, 0) + 1
+            suffix = seen_counts[key]
+            display_name = f"{cipai_name} - {author} ({total_chars}字)-{suffix}"
+            unique_key = f"{key}-{suffix}"  # 用于前端识别的唯一标识
 
         cipai_list.append({
             "cipai_name": cipai_name,
             "author": author,
             "total_chars": total_chars,
             "split_length": split_length,
-            "display_name": f"{cipai_name} - {author} ({total_chars}字)",
+            "display_name": display_name,
+            "unique_key": unique_key,  # 添加唯一标识
+            "row_index": len(cipai_list),  # 添加行索引，用于后续匹配具体记录
         })
 
-    cipai_list.sort(key=lambda x: (x['cipai_name'], x['total_chars']))
+    cipai_list.sort(key=lambda x: (x['cipai_name'], x['total_chars'], x.get('row_index', 0)))
 
     default_index = 0
     for i, item in enumerate(cipai_list):
@@ -222,6 +248,7 @@ def estimate_poetry(text: str, rhymebook: str) -> Dict[str, Any]:
         key = f"{guess_cipai.strip()}|{author.strip()}"
         yunjiao_patterns = yunjiao_dict.get(key, [])
         if yunjiao_patterns:
+            # 为韵脚计算 text_drop -> 原文索引映射
             text_drop_to_original_map: Dict[int, int] = {}
             text_drop_index = 0
             for original_index, char in enumerate(text_cleaned):
@@ -296,13 +323,27 @@ def create_fillword_framework(tone_pattern: List[str], split_length: List[int]) 
     total_length = len(tone_pattern)
     mid_point = total_length // 2
 
+    # 寻找最接近中点的分割位置
     current_pos = 0
-    shangque_end = mid_point
+    best_pos = mid_point
+    best_diff = float('inf')
+    
     for length in split_length:
-        if current_pos + length >= mid_point:
-            shangque_end = current_pos + length
+        next_pos = current_pos + length
+        diff_to_mid = abs(next_pos - mid_point)
+        
+        # 如果当前位置更接近中点，就选择它
+        if diff_to_mid < best_diff:
+            best_diff = diff_to_mid
+            best_pos = next_pos
+        
+        current_pos = next_pos
+        
+        # 如果已经远离中点，就停止寻找
+        if next_pos > mid_point and diff_to_mid > best_diff:
             break
-        current_pos += length
+    
+    shangque_end = best_pos
 
     ques = []
     shangque_tones = tone_pattern[:shangque_end]

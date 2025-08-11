@@ -16,11 +16,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const cipaiSearch = document.getElementById('cipai-search');
     const cipaiSuggestions = document.getElementById('cipai-suggestions');
     const startFillwordBtn = document.getElementById('start-fillword-btn');
-    const btnText = analyzeBtn.querySelector('.btn-text');
-    const loadingSpinner = analyzeBtn.querySelector('.loading-spinner');
+    const btnText = analyzeBtn ? analyzeBtn.querySelector('.btn-text') : null;
+    const loadingSpinner = analyzeBtn ? analyzeBtn.querySelector('.loading-spinner') : null;
 
     // 分析表单提交事件
-    form.addEventListener('submit', async function(e) {
+    if (form) form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const formData = new FormData(form);
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 填词按钮点击事件
-    fillwordBtn.addEventListener('click', async function() {
+    if (fillwordBtn) fillwordBtn.addEventListener('click', async function() {
         // 隐藏其他区域
         hideAllSections();
         
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentSuggestionIndex = -1;
 
     // 词牌搜索输入事件
-    cipaiSearch.addEventListener('input', function() {
+    if (cipaiSearch) cipaiSearch.addEventListener('input', function() {
         const query = this.value.trim();
         if (query.length === 0) {
             hideCipaiSuggestions();
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 词牌搜索键盘事件
-    cipaiSearch.addEventListener('keydown', function(e) {
+    if (cipaiSearch) cipaiSearch.addEventListener('keydown', function(e) {
         const suggestions = cipaiSuggestions.querySelectorAll('.cipai-suggestion-item:not(.no-suggestions)');
         
         if (e.key === 'ArrowDown') {
@@ -123,14 +123,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // 常用词牌按钮点击事件
+    document.querySelectorAll('.common-cipai-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const cipaiName = this.getAttribute('data-cipai');
+            if (cipaiName && cipaiSearch) {
+                cipaiSearch.value = cipaiName;
+                // 触发搜索
+                cipaiSearch.dispatchEvent(new Event('input'));
+                // 自动选择第一个匹配的词牌
+                setTimeout(() => {
+                    const suggestions = document.querySelectorAll('.cipai-suggestion-item');
+                    if (suggestions.length > 0) {
+                        selectCipaiSuggestion(suggestions[0]);
+                    }
+                }, 100);
+            }
+        });
+    });
+
     // 开始填词按钮点击事件
-    startFillwordBtn.addEventListener('click', async function() {
+    if (startFillwordBtn) startFillwordBtn.addEventListener('click', async function() {
         if (!selectedCipai) {
             alert('请先选择词牌');
             return;
         }
         
-        await loadFillwordFramework(selectedCipai.cipai_name, selectedCipai.author);
+        await loadFillwordFramework(selectedCipai.cipai_name, selectedCipai.author, selectedCipai.unique_key);
     });
 
     // 隐藏所有结果区域
@@ -142,6 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 设置加载状态
     function setLoadingState(isLoading) {
+        if (!analyzeBtn || !btnText || !loadingSpinner) return;
         if (isLoading) {
             analyzeBtn.disabled = true;
             btnText.style.display = 'none';
@@ -187,10 +207,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const lowerQuery = query.toLowerCase();
         return cipaiList.filter(cipai => {
+            const displayName = cipai.display_name || `${cipai.cipai_name} - ${cipai.author} (${cipai.total_chars}字)`;
             return cipai.cipai_name.toLowerCase().includes(lowerQuery) ||
                    cipai.author.toLowerCase().includes(lowerQuery) ||
+                   displayName.toLowerCase().includes(lowerQuery) ||
                    cipai.cipai_name.includes(query) ||
-                   cipai.author.includes(query);
+                   cipai.author.includes(query) ||
+                   displayName.includes(query);
         }).slice(0, 10); // 限制显示前10个结果
     }
 
@@ -202,13 +225,12 @@ document.addEventListener('DOMContentLoaded', function() {
             cipaiSuggestions.innerHTML = '<div class="no-suggestions">未找到匹配的词牌</div>';
         } else {
             cipaiSuggestions.innerHTML = suggestions.map(cipai => {
-                const nameHighlighted = highlightMatch(cipai.cipai_name, query);
-                const authorHighlighted = highlightMatch(cipai.author, query);
+                // 使用新的display_name字段，它已经包含了序号后缀
+                const displayNameHighlighted = highlightMatch(cipai.display_name || `${cipai.cipai_name} - ${cipai.author} (${cipai.total_chars}字)`, query);
                 
                 return `
-                    <div class="cipai-suggestion-item" data-cipai-name="${cipai.cipai_name}" data-author="${cipai.author}">
-                        <div class="cipai-suggestion-name">${nameHighlighted}</div>
-                        <div class="cipai-suggestion-info">${authorHighlighted} - ${cipai.total_chars}字</div>
+                    <div class="cipai-suggestion-item" data-cipai-name="${cipai.cipai_name}" data-author="${cipai.author}" data-unique-key="${cipai.unique_key || ''}">
+                        <div class="cipai-suggestion-name">${displayNameHighlighted}</div>
                     </div>
                 `;
             }).join('');
@@ -245,12 +267,22 @@ document.addEventListener('DOMContentLoaded', function() {
     function selectCipaiSuggestion(suggestionElement) {
         const cipaiName = suggestionElement.dataset.cipaiName;
         const author = suggestionElement.dataset.author;
+        const uniqueKey = suggestionElement.dataset.uniqueKey;
         
-        // 找到对应的词牌对象
-        const cipai = cipaiList.find(c => c.cipai_name === cipaiName && c.author === author);
+        // 找到对应的词牌对象，优先使用unique_key进行匹配
+        let cipai;
+        if (uniqueKey) {
+            cipai = cipaiList.find(c => c.unique_key === uniqueKey);
+        }
+        // 如果unique_key匹配失败，回退到原来的匹配方式
+        if (!cipai) {
+            cipai = cipaiList.find(c => c.cipai_name === cipaiName && c.author === author);
+        }
+        
         if (cipai) {
             selectCipai(cipai);
-            cipaiSearch.value = cipaiName;
+            // 显示完整的词牌名称（包含序号后缀）
+            cipaiSearch.value = cipai.display_name || `${cipaiName} - ${author}`;
             hideCipaiSuggestions();
         }
     }
@@ -286,17 +318,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 加载填词框架
-    async function loadFillwordFramework(cipaiName, author) {
+    async function loadFillwordFramework(cipaiName, author, uniqueKey) {
         try {
+            const requestData = {
+                cipai_name: cipaiName,
+                author: author
+            };
+            
+            // 如果有unique_key，加入请求中
+            if (uniqueKey) {
+                requestData.unique_key = uniqueKey;
+            }
+            
             const response = await fetch('/get_fillword_framework', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    cipai_name: cipaiName,
-                    author: author
-                })
+                body: JSON.stringify(requestData)
             });
 
             const result = await response.json();
@@ -600,7 +639,7 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `
                 <div class="result-item full-width">
                     <div class="result-label">平仄标注：</div>
-                    <div class="tone-display">
+                    <div class="tone-display" id="tone-display">
                         ${createToneDisplay(result.tone_text, result.issues || [])}
                     </div>
                 </div>
@@ -663,6 +702,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         resultContent.innerHTML = html;
         resultSection.style.display = 'block';
+
+        // 候选字替换功能已取消
         
         // 添加韵脚模式选择器事件监听器
         const yunjiaoSelector = document.getElementById('yunjiao-selector');
@@ -717,9 +758,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const issue = issueDetailMap[index];
                 const basicToneClass = getToneClass(tone);
                 const tooltipText = `错误：实际为"${issue.actual}"，应为"${issue.expected}"`;
-                return `<span class="tone-char ${basicToneClass} tone-incorrect" title="错误：${issue.actual}→${issue.expected}">
+
+                return `<span class="tone-char ${basicToneClass} tone-incorrect" data-pos="${index}">
                     ${char}
-                    <span class="tone-incorrect-tooltip">${tooltipText}</span>
+                    <span class="tone-incorrect-tooltip">
+                        ${tooltipText}
+                    </span>
                 </span>`;
             } else {
                 // 正常的字
@@ -731,7 +775,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 创建带韵脚标注的文本
     function createAnnotatedText(text, yunjiaoDetailed) {
-        if (!text || !yunjiaoDetailed || yunjiaoDetailed.length === 0) {
+        if (!text) return '';
+        if (!yunjiaoDetailed || yunjiaoDetailed.length === 0) {
             // 如果没有韵脚信息，按阕分行显示
             return formatTextByQue(text);
         }
@@ -743,7 +788,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // 找到阕的分隔位置
-        const queBreakPositions = findQueBreakPositions(text);
+        const computedBreakPositions = findQueBreakPositions(text);
 
         let result = '';
         for (let i = 0; i < text.length; i++) {
@@ -765,7 +810,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // 在阕分隔位置添加换行
-            if (queBreakPositions.includes(i)) {
+            if (computedBreakPositions.includes(i)) {
                 result += '<br/><br/>'; // 阕间用两个换行分隔，更清晰
             }
         }
@@ -868,7 +913,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const yunjiaoSummary = document.getElementById('yunjiao-summary');
                 
                 if (yunjiaoAnnotatedText) {
-                    yunjiaoAnnotatedText.innerHTML = createAnnotatedText(originalResult.text, result.data.yunjiao_detailed);
+                    yunjiaoAnnotatedText.innerHTML = createAnnotatedText(originalResult.text, result.data.yunjiao_detailed, originalResult.que_break_positions || []);
                 }
                 
                 if (yunjiaoSummary) {
@@ -909,6 +954,27 @@ document.addEventListener('DOMContentLoaded', function() {
             this.focus();
         }
     });
+
+    // “填入示例”按钮
+    const exampleBtn = document.getElementById('example-btn');
+    if (exampleBtn) {
+        exampleBtn.addEventListener('click', function() {
+            const randomExample = examples[Math.floor(Math.random() * examples.length)];
+            if (!textInput.value.trim() || confirm('是否用示例文本替换当前输入？')) {
+                textInput.value = randomExample;
+                textInput.focus();
+            }
+        });
+    }
+
+    // “清空输入”按钮
+    const clearBtn = document.getElementById('clear-input-btn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            textInput.value = '';
+            textInput.focus();
+        });
+    }
 
     // 检查是否所有填词输入框都已填好
     function updateFinalAnalysisButtonState() {
@@ -1081,39 +1147,48 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
-// 页面内平仄检查函数
+// 页面内平仄检查（批量）
 async function checkFillwordToneInline() {
     const inputs = document.querySelectorAll('.fillword-char-input');
-    
+
     // 清除之前的错误标记
     inputs.forEach(input => {
         input.classList.remove('tone-error', 'tone-correct');
     });
-    
-    // 移除未使用的空值检查，避免无意义的变量
-    
-    // 直接检查平仄，不需要弹窗确认
-    
-    // 静默进行平仄检查
-    
-    try {
-        // 检查每个字符的平仄
-        for (const input of inputs) {
-            const char = input.value.trim();
-            const expectedTone = input.getAttribute('data-tone');
-            
-            if (char && expectedTone && expectedTone !== '中') {
-                const actualTone = await getCharacterTone(char);
-                
-                if (actualTone === expectedTone) {
-                    input.classList.add('tone-correct');
-                } else {
-                    input.classList.add('tone-error');
-                }
-            }
+
+    // 收集待检查字符（排除“中”）
+    const targets = [];
+    const chars = [];
+    inputs.forEach(input => {
+        const char = input.value.trim();
+        const expectedTone = input.getAttribute('data-tone');
+        if (char && expectedTone && expectedTone !== '中') {
+            targets.push(input);
+            chars.push(char);
         }
-        
-        // 检查完成，结果已通过颜色在页面上显示
+    });
+
+    if (chars.length === 0) return;
+
+    try {
+        const items = await getCharactersTones(chars.join(''));
+        if (!items || items.length !== targets.length) {
+            // 回退：逐字本地判断
+            for (let i = 0; i < targets.length; i++) {
+                const expected = targets[i].getAttribute('data-tone');
+                const actual = getCharacterToneSimple(chars[i]);
+                if (actual === expected) targets[i].classList.add('tone-correct');
+                else targets[i].classList.add('tone-error');
+            }
+            return;
+        }
+
+        for (let i = 0; i < targets.length; i++) {
+            const expected = targets[i].getAttribute('data-tone');
+            const actual = items[i].tone;
+            if (actual === expected) targets[i].classList.add('tone-correct');
+            else targets[i].classList.add('tone-error');
+        }
     } catch (error) {
         console.error('平仄检查错误:', error);
     }
@@ -1145,6 +1220,29 @@ async function getCharacterTone(char) {
     return getCharacterToneSimple(char);
 }
 
+// 批量获取汉字的平仄（使用批量API）
+async function getCharactersTones(chars) {
+    try {
+        const response = await fetch('/get_char_tones', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ chars })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            if (result && result.success && result.data && Array.isArray(result.data.items)) {
+                return result.data.items;
+            }
+        }
+    } catch (error) {
+        console.log('批量获取平仄信息失败，使用简化判断:', error);
+    }
+    // 回退到本地简化判断
+    return chars.split('').map(c => ({ char: c, tone: getCharacterToneSimple(c) }));
+}
 // 简化的平仄判断（备用方案）
 function getCharacterToneSimple(char) {
     // 常见平声字（一声、二声）
