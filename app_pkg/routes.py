@@ -39,6 +39,7 @@ def analyze():
         return fail("请输入要分析的诗词文本")
 
     result = estimate_poetry(text, rhymebook)
+    
     # 统一包装
     if isinstance(result, dict) and result.get("error"):
         return fail(result.get("error"))
@@ -229,6 +230,132 @@ def get_char_tone():
         return ok({"char": char, "tone": result_tone, "original_tone": tone})
     except Exception as e:
         return fail(str(e))
+
+
+@bp.route('/analyze_with_selected_cipai', methods=['POST'])
+def analyze_with_selected_cipai():
+    data = request.get_json()
+    text = data.get('text', '')
+    rhymebook = data.get('rhymebook', '2')
+    selected_cipai = data.get('selected_cipai', {})
+    
+    if not text.strip():
+        return fail("请输入要分析的诗词文本")
+    
+    if not selected_cipai:
+        return fail("请选择一个词牌")
+    
+    try:
+        from .services.analysis import (
+            load_rhymebook_with_yunbu,
+            load_yunjiao,
+            load_cipai_intro,
+            preprocess_text,
+            mark_tone,
+            get_score_tone
+        )
+        import re
+        
+        # 加载必要的数据
+        tone_dict, yunbu_dict = load_rhymebook_with_yunbu(rhymebook)
+        yunjiao_dict = load_yunjiao()
+        try:
+            cipai_intro_dict = load_cipai_intro()
+        except Exception:
+            cipai_intro_dict = {}
+        
+        # 预处理文本
+        text_drop, text_cleaned, length, split_length = preprocess_text(text)
+        
+        # 使用选择的词牌进行分析
+        guess_cipai = selected_cipai['cipai_name']
+        author = selected_cipai['author']
+        tone_database = selected_cipai['rhythm']
+        
+        # 处理韵律模式
+        tone_database = re.sub("[^\u4e00-\u9fa5]", "", tone_database)
+        tone_database = list(re.sub(r"增韵", "", tone_database))
+        tone_text = mark_tone(text_drop, tone_dict)
+        score, issue_data = get_score_tone(tone_text, tone_database)
+        
+        # 处理韵脚信息
+        yunjiao_options = []
+        yunjiao_words = []
+        yunjiao_yunbu = {}
+        yunjiao_detailed = []
+        
+        if guess_cipai and author:
+            key = f"{guess_cipai.strip()}|{author.strip()}"
+            yunjiao_patterns = yunjiao_dict.get(key, [])
+            if yunjiao_patterns:
+                # 为韵脚计算 text_drop -> 原文索引映射
+                text_drop_to_original_map = {}
+                text_drop_index = 0
+                for original_index, char in enumerate(text_cleaned):
+                    if re.match(r'[\u4e00-\u9fa5]', char):
+                        text_drop_to_original_map[text_drop_index] = original_index
+                        text_drop_index += 1
+
+                for i, positions in enumerate(yunjiao_patterns):
+                    pattern_words = [text_drop[pos - 1] for pos in positions if 0 < pos <= len(text_drop)]
+                    pattern_detailed = []
+                    pattern_yunbu = {}
+                    for pos in positions:
+                        if 0 < pos <= len(text_drop):
+                            word = text_drop[pos - 1]
+                            text_drop_pos = pos - 1
+                            original_pos = text_drop_to_original_map.get(text_drop_pos, -1)
+                            if original_pos >= 0:
+                                yunbu_list = [yunbu for yunbu, words in yunbu_dict.items() if word in words]
+                                pattern_detailed.append({
+                                    "position": original_pos,
+                                    "word": word,
+                                    "yunbu": yunbu_list
+                                })
+                                pattern_yunbu[word] = yunbu_list
+
+                    yunjiao_options.append({
+                        "id": i,
+                        "positions": positions,
+                        "words": pattern_words,
+                        "yunbu": pattern_yunbu,
+                        "detailed": pattern_detailed
+                    })
+
+                if yunjiao_options:
+                    first_option = yunjiao_options[0]
+                    yunjiao_words = first_option["words"]
+                    yunjiao_yunbu = first_option["yunbu"]
+                    yunjiao_detailed = first_option["detailed"]
+        
+        # 获取词牌介绍
+        cipai_intro = ""
+        if guess_cipai and cipai_intro_dict:
+            cipai_intro = cipai_intro_dict.get(guess_cipai.strip(), "")
+        
+        return ok({
+            "text": text_cleaned,
+            "original_text": text,
+            "processed_text": text_drop,
+            "cipai_name": guess_cipai,
+            "cipai_intro": cipai_intro,
+            "author": author,
+            "score": round(score, 2),
+            "issues": [
+                {"word": w, "actual": a, "expected": e, "position": p}
+                for (w, a), e, p in issue_data
+            ],
+            "yunjiao_words": yunjiao_words,
+            "yunjiao_yunbu": yunjiao_yunbu,
+            "yunjiao_detailed": yunjiao_detailed,
+            "yunjiao_options": yunjiao_options,
+            "tone_text": tone_text,
+            "length": length,
+            "split_length": split_length,
+        })
+        
+    except Exception as e:
+        return fail(f"分析失败: {str(e)}")
 
 
 @bp.route('/get_char_tones', methods=['POST'])

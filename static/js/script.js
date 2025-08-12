@@ -1,3 +1,21 @@
+// 全局DOM元素变量
+let resultSection, resultContent, analyzeBtn, fillwordBtn, fillwordSection, fillwordFrameworkSection;
+let cipaiSearch, cipaiSuggestions, startFillwordBtn, btnText, loadingSpinner;
+
+// 全局显示结果函数声明
+let displayResult;
+
+// 全局隐藏所有结果区域函数
+function hideAllSections() {
+    if (resultSection) resultSection.style.display = 'none';
+    if (fillwordSection) fillwordSection.style.display = 'none';
+    if (fillwordFrameworkSection) fillwordFrameworkSection.style.display = 'none';
+    const cipaiSelectionSection = document.getElementById('cipai-selection-section');
+    if (cipaiSelectionSection) {
+        cipaiSelectionSection.style.display = 'none';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('analysis-form');
     const themeToggle = document.getElementById('theme-toggle');
@@ -7,17 +25,18 @@ document.addEventListener('DOMContentLoaded', function() {
         themeToggle.addEventListener('click', toggleTheme);
     }
 
-    const resultSection = document.getElementById('result-section');
-    const resultContent = document.getElementById('result-content');
-    const analyzeBtn = document.getElementById('analyze-btn');
-    const fillwordBtn = document.getElementById('fillword-btn');
-    const fillwordSection = document.getElementById('fillword-section');
-    const fillwordFrameworkSection = document.getElementById('fillword-framework-section');
-    const cipaiSearch = document.getElementById('cipai-search');
-    const cipaiSuggestions = document.getElementById('cipai-suggestions');
-    const startFillwordBtn = document.getElementById('start-fillword-btn');
-    const btnText = analyzeBtn ? analyzeBtn.querySelector('.btn-text') : null;
-    const loadingSpinner = analyzeBtn ? analyzeBtn.querySelector('.loading-spinner') : null;
+    // 初始化全局DOM元素
+    resultSection = document.getElementById('result-section');
+    resultContent = document.getElementById('result-content');
+    analyzeBtn = document.getElementById('analyze-btn');
+    fillwordBtn = document.getElementById('fillword-btn');
+    fillwordSection = document.getElementById('fillword-section');
+    fillwordFrameworkSection = document.getElementById('fillword-framework-section');
+    cipaiSearch = document.getElementById('cipai-search');
+    cipaiSuggestions = document.getElementById('cipai-suggestions');
+    startFillwordBtn = document.getElementById('start-fillword-btn');
+    btnText = analyzeBtn ? analyzeBtn.querySelector('.btn-text') : null;
+    loadingSpinner = analyzeBtn ? analyzeBtn.querySelector('.loading-spinner') : null;
 
     // 分析表单提交事件
     if (form) form.addEventListener('submit', async function(e) {
@@ -151,13 +170,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         await loadFillwordFramework(selectedCipai.cipai_name, selectedCipai.author, selectedCipai.unique_key);
     });
-
-    // 隐藏所有结果区域
-    function hideAllSections() {
-        resultSection.style.display = 'none';
-        fillwordSection.style.display = 'none';
-        fillwordFrameworkSection.style.display = 'none';
-    }
 
     // 设置加载状态
     function setLoadingState(isLoading) {
@@ -565,7 +577,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return null;
     }
 
-    function displayResult(result) {
+    displayResult = function(result) {
+        // 检查是否需要显示词牌选择界面
+        if (result.multiple_matches) {
+            showCipaiSelectionInterface(result);
+            return;
+        }
+
         let html = '';
 
         // 基本信息（全宽显示）
@@ -1398,4 +1416,132 @@ function showPasteNotification(message, type = 'success') {
             }
         }, 300);
     }, 3000);
+}
+
+// 词牌选择相关函数
+function showCipaiSelectionInterface(result) {
+    hideAllSections();
+    
+    const cipaiSelectionSection = document.getElementById('cipai-selection-section');
+    const cipaiOptions = document.getElementById('cipai-options');
+    
+    if (!cipaiSelectionSection || !cipaiOptions) {
+        console.error('Cipai selection elements not found');
+        return;
+    }
+    
+    // 清空现有选项
+    cipaiOptions.innerHTML = '';
+    
+    // 创建词牌选项
+    result.matching_cipai.forEach((cipai, index) => {
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'cipai-option';
+        optionDiv.dataset.index = index;
+        
+        optionDiv.innerHTML = `
+            <div class="cipai-option-header">
+                <h3 class="cipai-option-name">${cipai.cipai_name}</h3>
+                <span class="cipai-option-chars">${cipai.total_chars}字</span>
+            </div>
+            <div class="cipai-option-author">作者：${cipai.author}</div>
+            <div class="cipai-option-stats">
+                <div class="cipai-option-stat">
+                    <span>中声：${cipai.zhong}</span>
+                </div>
+                <div class="cipai-option-stat">
+                    <span>平声：${cipai.ping}</span>
+                </div>
+                <div class="cipai-option-stat">
+                    <span>仄声：${cipai.ze}</span>
+                </div>
+            </div>
+        `;
+        
+        // 添加点击事件
+        optionDiv.addEventListener('click', function() {
+            // 移除所有选中状态
+            cipaiOptions.querySelectorAll('.cipai-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // 设置当前选中
+            this.classList.add('selected');
+            
+            // 显示确认按钮
+            showCipaiSelectButton(result, cipai);
+        });
+        
+        cipaiOptions.appendChild(optionDiv);
+    });
+    
+    // 显示选择界面
+    cipaiSelectionSection.style.display = 'block';
+    cipaiSelectionSection.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+    });
+}
+
+function showCipaiSelectButton(originalResult, selectedCipai) {
+    // 查找是否已有确认按钮
+    let actionsDiv = document.querySelector('.cipai-selection-actions');
+    
+    if (!actionsDiv) {
+        actionsDiv = document.createElement('div');
+        actionsDiv.className = 'cipai-selection-actions';
+        document.getElementById('cipai-options').parentNode.appendChild(actionsDiv);
+    }
+    
+    actionsDiv.innerHTML = `
+        <button class="cipai-select-btn" id="confirm-cipai-btn">
+            <span class="btn-text">确认选择并分析</span>
+        </button>
+    `;
+    
+    const confirmBtn = document.getElementById('confirm-cipai-btn');
+    confirmBtn.addEventListener('click', async function() {
+        await analyzeWithSelectedCipai(originalResult, selectedCipai);
+    });
+}
+
+async function analyzeWithSelectedCipai(originalResult, selectedCipai) {
+    const confirmBtn = document.getElementById('confirm-cipai-btn');
+    const btnText = confirmBtn.querySelector('.btn-text');
+    
+    // 显示加载状态
+    confirmBtn.disabled = true;
+    btnText.textContent = '分析中...';
+    
+    try {
+        const response = await fetch('/analyze_with_selected_cipai', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                text: originalResult.original_text,
+                rhymebook: document.getElementById('rhymebook-select').value,
+                selected_cipai: selectedCipai
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            showToast(result.error || '分析失败', 'error');
+            return;
+        }
+        
+        // 隐藏选择界面，显示分析结果
+        hideAllSections();
+        displayResult(result.data);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('网络错误，请稍后重试', 'error');
+    } finally {
+        confirmBtn.disabled = false;
+        btnText.textContent = '确认选择并分析';
+    }
 } 

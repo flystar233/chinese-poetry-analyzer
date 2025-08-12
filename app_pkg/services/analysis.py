@@ -158,8 +158,18 @@ def preprocess_text(text: str) -> Tuple[str, str, int, List[int]]:
     text_cleaned = re.sub(r'\s+', '', text)
     text_drop = re.sub("[^\u4e00-\u9fa5]", "", text_cleaned)
     length = len(text_drop)
+    
+    # 如果没有中文字符，返回空结果
+    if length == 0:
+        return text_drop, text_cleaned, 0, [0]
+    
     sentences = re.split('[，。、？！]', text_cleaned)
     split_length = [len(re.sub("[^\u4e00-\u9fa5]", "", sentence)) for sentence in sentences if sentence.strip()]
+    
+    # 如果分割结果为空（没有标点符号），则把整个文本作为一段
+    if not split_length or sum(split_length) == 0:
+        split_length = [length]
+    
     return text_drop, text_cleaned, length, split_length
 
 
@@ -171,6 +181,27 @@ def guess_cipai_name(length: int, split_length: List[int], cipai_data: pd.DataFr
         except Exception:
             continue
     return None, None, None
+
+
+def find_matching_cipai(length: int, split_length: List[int], cipai_data: pd.DataFrame) -> List[Dict[str, Any]]:
+    """根据字数和分段字数查找所有匹配的词牌"""
+    matches = []
+    for row in cipai_data.itertuples():
+        try:
+            if length == getattr(row, '总数') and str(split_length) == getattr(row, '分段字数'):
+                matches.append({
+                    'cipai_name': getattr(row, '词牌名'),
+                    'author': getattr(row, '作者'),
+                    'rhythm': getattr(row, '韵律'),
+                    'total_chars': getattr(row, '总数'),
+                    'split_length': getattr(row, '分段字数'),
+                    'zhong': getattr(row, '中'),
+                    'ping': getattr(row, '平'),
+                    'ze': getattr(row, '仄')
+                })
+        except Exception:
+            continue
+    return matches
 
 
 def mark_tone(text: str, tone_dict: Dict[str, str]) -> List[Tuple[str, str]]:
@@ -215,9 +246,11 @@ def estimate_poetry(text: str, rhymebook: str) -> Dict[str, Any]:
         cipai_intro_dict = {}
 
     text_drop, text_cleaned, length, split_length = preprocess_text(text)
-    guess_cipai, author, tone_database = guess_cipai_name(length, split_length, cipai_data)
-
-    if not tone_database:
+    
+    # 先查找所有匹配的词牌
+    matching_cipai = find_matching_cipai(length, split_length, cipai_data)
+    
+    if not matching_cipai:
         # Log for debugging when no matching cipai is found
         try:
             current_app.logger.info(
@@ -233,6 +266,25 @@ def estimate_poetry(text: str, rhymebook: str) -> Dict[str, Any]:
             "length": length,
             "split_length": split_length
         }
+    
+    # 如果有多个匹配的词牌，返回选择界面
+    if len(matching_cipai) > 1:
+        return {
+            "success": True,
+            "multiple_matches": True,
+            "matching_cipai": matching_cipai,
+            "text": text_cleaned,
+            "original_text": text,
+            "processed_text": text_drop,
+            "length": length,
+            "split_length": split_length
+        }
+    
+    # 如果只有一个匹配，使用原有逻辑
+    selected_cipai = matching_cipai[0]
+    guess_cipai = selected_cipai['cipai_name']
+    author = selected_cipai['author']
+    tone_database = selected_cipai['rhythm']
 
     tone_database = re.sub("[^\u4e00-\u9fa5]", "", tone_database)
     tone_database = list(re.sub(r"增韵", "", tone_database))

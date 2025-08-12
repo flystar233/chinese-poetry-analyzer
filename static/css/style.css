@@ -1467,4 +1467,155 @@ body.dark .common-cipai-btn:hover {
     .fillword-legend-text {
         font-size: 0.75em;
     }
+}
+
+/* 词牌选择区域样式 */
+.cipai-selection-section {
+    margin: 25px 0;
+}
+
+.selection-hint {
+    color: #64748b;
+    font-size: 15px;
+    margin-bottom: 20px;
+    text-align: center;
+    line-height: 1.6;
+}
+
+.cipai-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.cipai-option {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.cipai-option:hover {
+    border-color: #3b82f6;
+    background: #f8fafc;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+}
+
+.cipai-option.selected {
+    border-color: #3b82f6;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+}
+
+.cipai-option-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.cipai-option-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.cipai-option-chars {
+    background: #3b82f6;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.cipai-option-author {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.cipai-option-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.cipai-option-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cipai-selection-actions {
+    text-align: center;
+    margin-top: 25px;
+}
+
+.cipai-select-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.cipai-select-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+.cipai-select-btn:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 深色主题词牌选择样式 */
+body.dark .selection-hint {
+    color: #94a3b8;
+}
+
+body.dark .cipai-option {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark .cipai-option:hover {
+    border-color: #60a5fa;
+    background: #334155;
+    box-shadow: 0 8px 25px rgba(96, 165, 250, 0.2);
+}
+
+body.dark .cipai-option.selected {
+    border-color: #60a5fa;
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    box-shadow: 0 8px 25px rgba(96, 165, 250, 0.3);
+}
+
+body.dark .cipai-option-name {
+    color: #e2e8f0;
+}
+
+body.dark .cipai-option-chars {
+    background: #60a5fa;
+}
+
+body.dark .cipai-option-author,
+body.dark .cipai-option-stats {
+    color: #94a3b8;
 } 
